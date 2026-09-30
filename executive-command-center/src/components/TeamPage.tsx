@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useAppStore } from '@/store';
-import { Mail, FolderKanban, Tag, Users, Edit2, Check, X, Plus, UserPlus, Trash2 } from 'lucide-react';
+import { Mail, FolderKanban, Tag, Users, Edit2, Check, X, Plus, UserPlus, Trash2, Calendar, Activity, AlertCircle } from 'lucide-react';
 
 export default function TeamPage() {
   const { teamMembers, tasks, projects, updateTeamMember, addTeamMember, deleteTeamMember } = useAppStore();
@@ -64,6 +64,9 @@ export default function TeamPage() {
     );
   };
 
+  // Weeks for Workload Heatmap
+  const weeks = ['Oct Week 1', 'Oct Week 2', 'Oct Week 3', 'Oct Week 4'];
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -71,10 +74,10 @@ export default function TeamPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
             <Users className="text-indigo-600" size={26} />
-            Team Directory & Assigned Email Directory
+            Team Directory & Workload Allocation
           </h1>
           <p className="text-slate-500 text-sm mt-1">
-            Manage team members, assigned emails, project allocations, and capacity.
+            Manage team members, assigned emails, project allocations, and capacity heatmaps.
           </p>
         </div>
 
@@ -85,6 +88,91 @@ export default function TeamPage() {
           <UserPlus size={18} />
           Add Team Member
         </button>
+      </div>
+
+      {/* WORKLOAD HEATMAP TABLE (PDF SPEC SECTION 2 & 8) */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div>
+            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <Activity size={18} className="text-indigo-600" />
+              Weekly Workload Heatmap vs. Capacity
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Visual allocation of hours across active team members by week. Shaded by capacity utilization.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3 text-[11px] font-semibold">
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-emerald-100 border border-emerald-300" /> Optimal (&lt;80%)</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-amber-100 border border-amber-300" /> Near Cap (80-100%)</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-rose-100 border border-rose-300" /> Overload (&gt;100%)</span>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="border-b border-slate-200 bg-slate-50/80 text-slate-600 font-bold uppercase text-[10px]">
+                <th className="py-2.5 px-3">Team Member</th>
+                <th className="py-2.5 px-3">Role</th>
+                <th className="py-2.5 px-3">Capacity</th>
+                {weeks.map((w) => (
+                  <th key={w} className="py-2.5 px-3 text-center">{w}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {teamMembers.map((m) => {
+                const mTasks = tasks.filter((t) => t.assignee === m.id && t.status !== 'completed');
+                const totalEffort = mTasks.reduce((sum, t) => sum + (t.effortHours || 10), 0);
+                const baseCapacity = m.weeklyCapacityHours || 40;
+
+                // Simulated weekly distribution for demo visual
+                const weekLoads = [
+                  Math.round(totalEffort * 0.4),
+                  Math.round(totalEffort * 0.35),
+                  Math.round(totalEffort * 0.2),
+                  Math.round(totalEffort * 0.05),
+                ];
+
+                return (
+                  <tr key={m.id} className="hover:bg-slate-50/60 transition-colors">
+                    <td className="py-3 px-3 font-bold text-slate-900 flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold text-[10px] flex items-center justify-center">
+                        {m.name.split(' ').map((n) => n[0]).join('')}
+                      </div>
+                      {m.name}
+                    </td>
+                    <td className="py-3 px-3 text-slate-600 font-medium text-[11px]">{m.role}</td>
+                    <td className="py-3 px-3 font-mono font-bold text-slate-700">{baseCapacity}h/wk</td>
+                    {weekLoads.map((load, idx) => {
+                      const utilPct = Math.round((load / (baseCapacity / 2)) * 100);
+                      const isOver = utilPct > 100;
+                      const isHigh = utilPct >= 80 && utilPct <= 100;
+
+                      return (
+                        <td key={idx} className="py-2 px-3 text-center">
+                          <div
+                            className={`py-1.5 px-2 rounded-lg font-mono font-extrabold text-xs flex items-center justify-center gap-1 ${
+                              isOver
+                                ? 'bg-rose-100 text-rose-800 border border-rose-200'
+                                : isHigh
+                                ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                                : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                            }`}
+                          >
+                            {load}h ({utilPct}%)
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Member Cards Grid */}

@@ -18,14 +18,18 @@ import ProjectDetailPage from '@/components/ProjectDetailPage';
 import ReminderModal from '@/components/ReminderModal';
 import CommandPalette from '@/components/CommandPalette';
 import QuickAddSheet from '@/components/QuickAddSheet';
+import UserProfileModal from '@/components/UserProfileModal';
+import DataHealthModal from '@/components/DataHealthModal';
 
-import { Search, Plus, UserCheck, Shield } from 'lucide-react';
+import { Search, Plus, UserCheck, Shield, FileSearch, Pin, ChevronRight } from 'lucide-react';
 
 export default function Home() {
   const { activePage, reminders, setActiveReminder, activeReminder, userRole, setUserRole } = useAppStore();
 
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isHealthOpen, setIsHealthOpen] = useState(false);
 
   useEffect(() => {
     const unack = reminders.find((r) => !r.acknowledged);
@@ -63,6 +67,8 @@ export default function Home() {
     }
   };
 
+  const isOwner = userRole === 'owner';
+
   return (
     <div className="app-container">
       <Sidebar />
@@ -88,27 +94,31 @@ export default function Home() {
               <span>Search or Ctrl + K</span>
             </button>
 
-            {/* Account Role Switcher (Spec Section 1 & 11) */}
-            <div className="flex items-center gap-1.5 bg-slate-100 border border-slate-200 p-1 rounded-xl text-xs font-semibold">
-              <button
-                onClick={() => setUserRole('owner')}
-                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 ${
-                  userRole === 'owner' ? 'bg-indigo-600 text-white shadow-xs font-bold' : 'text-slate-600'
-                }`}
-                title="Saswat Sahu (Owner - Full Access)"
-              >
-                <Shield size={12} /> Saswat (Owner)
-              </button>
-              <button
-                onClick={() => setUserRole('member')}
-                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 ${
-                  userRole === 'member' ? 'bg-indigo-600 text-white shadow-xs font-bold' : 'text-slate-600'
-                }`}
-                title="Meghna Kyatham (Member - Configurable Access)"
-              >
-                <UserCheck size={12} /> Meghna (Member)
-              </button>
-            </div>
+            {/* Automated Data Health Audit Scan Trigger */}
+            <button
+              onClick={() => setIsHealthOpen(true)}
+              className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              title="Automated Data Health & Integrity Scan"
+            >
+              <FileSearch size={16} className="text-indigo-600" />
+              <span className="hidden md:inline">Data Health</span>
+            </button>
+
+            {/* Signed-in Executive Profile Button (PDF Spec Section 1 & 2) */}
+            <button
+              onClick={() => setIsProfileOpen(true)}
+              className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 p-1 pr-3 rounded-xl text-xs font-semibold transition-all"
+            >
+              <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white font-bold text-xs flex items-center justify-center">
+                {isOwner ? 'SS' : 'MK'}
+              </div>
+              <span className="text-slate-800 font-bold hidden sm:inline">
+                {isOwner ? 'Saswat (Owner)' : 'Meghna (Member)'}
+              </span>
+              <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded">
+                2FA Verified
+              </span>
+            </button>
 
             {/* "+" Quick Add Button */}
             <button
@@ -120,6 +130,16 @@ export default function Home() {
             </button>
           </div>
         </header>
+
+        {/* SIR'S PICK / BOSS'S PRIORITY BANNER (PDF SPEC SECTION 4 & 5) */}
+        <div className="bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 text-white px-6 py-2.5 flex items-center justify-between text-xs font-semibold shadow-xs">
+          <div className="flex items-center gap-2">
+            <Pin size={14} className="text-amber-200 shrink-0 animate-bounce" />
+            <span className="font-bold uppercase tracking-wider text-[11px] text-amber-200">Sir's Pick:</span>
+            <span>Finalize CRM Analytics Dashboard filters and review cloud infrastructure allocation for Cosmora AI.</span>
+          </div>
+          <span className="text-[10px] text-amber-100 font-mono hidden md:inline">Pinned by Saswat Sahu</span>
+        </div>
 
         <div className="page-content">{renderActivePage()}</div>
       </main>
@@ -145,7 +165,17 @@ export default function Home() {
         onClose={() => setIsQuickAddOpen(false)}
       />
 
-      <ReminderModal />
+      <UserProfileModal
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+      />
+
+      <DataHealthModal
+        isOpen={isHealthOpen}
+        onClose={() => setIsHealthOpen(false)}
+      />
+
+      {activeReminder && <ReminderModal />}
     </div>
   );
 }

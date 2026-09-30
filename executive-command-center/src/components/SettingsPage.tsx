@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useAppStore } from '@/store';
+import IntegrationsHub from '@/components/IntegrationsHub';
 import { Settings, User, Shield, Bell, Database, Download, Check } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -36,17 +37,20 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6 max-w-5xl">
       {/* Header */}
       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
           <Settings className="text-indigo-600" size={26} />
-          Settings & System Access
+          Settings & Connected Tool Integrations
         </h1>
         <p className="text-slate-500 text-sm mt-1">
-          Manage user profiles, privacy enforcement, and data export configuration.
+          Manage user profiles, Notion database sync, WhatsApp update listeners, and data export backup.
         </p>
       </div>
+
+      {/* Connected Systems Integrations Hub */}
+      <IntegrationsHub />
 
       <form onSubmit={handleSaveSettings} className="space-y-6">
         {/* User Profile */}
@@ -72,7 +76,7 @@ export default function SettingsPage() {
               <input
                 type="text"
                 disabled
-                value={`${currentUser.role} (Admin)`}
+                value={`${currentUser.role} (Executive)`}
                 className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 font-medium cursor-not-allowed"
               />
             </div>
